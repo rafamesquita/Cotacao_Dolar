@@ -7,33 +7,60 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
   <style>
-    /* Estilos preservados e polidos */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg: #0b0e14; --card: #11141d; --border: #1e2230;
-      --fg: #e0e4ed; --muted: #6b7280; --green: #4ade80;
-      --red: #f87171; --radius: 16px;
+      --bg: #0b0e14;
+      --card: #11141d;
+      --border: #1e2230;
+      --fg: #e0e4ed;
+      --muted: #6b7280;
+      --green: #4ade80;
+      --red: #f87171;
+      --radius: 16px;
+      --space-1: 8px;
+      --space-2: 12px;
+      --space-3: 16px;
+      --space-4: 20px;
+      --space-5: 24px;
+      --space-6: 32px;
+      --space-7: 40px;
+      --fs-label: 14px;
+      --fs-small: 13px;
+      --fs-title: 32px;
+      --fs-trend: 20px;
+      --fs-hero: 64px;
     }
-    body { background: var(--bg); color: var(--fg); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
-    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      line-height: 1.4;
+    }
+    .container { max-width: 1000px; margin: 0 auto; padding: var(--space-7) var(--space-4); }
     
-    .header { margin-bottom: 32px; }
-    .header h1 { font-size: 32px; letter-spacing: -1px; display: flex; align-items: center; gap: 12px; }
+    .header { margin-bottom: var(--space-6); }
+    .header h1 { font-size: var(--fs-title); letter-spacing: -1px; display: flex; align-items: center; gap: var(--space-2); }
     .header .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); }
 
-    .hero { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; margin-bottom: 24px; position: relative; overflow: hidden; }
-    .hero-label { color: var(--muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
-    .hero-value { font-family: 'JetBrains Mono', monospace; font-size: 64px; font-weight: 700; line-height: 1; }
+    .hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-7);
+      margin-bottom: var(--space-5);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-label { color: var(--muted); font-size: var(--fs-label); text-transform: uppercase; letter-spacing: 1px; margin-bottom: var(--space-1); }
+    .hero-content { display: flex; align-items: baseline; gap: var(--space-4); flex-wrap: wrap; }
+    .hero-value { font-family: 'JetBrains Mono', monospace; font-size: var(--fs-hero); font-weight: 700; line-height: 1; }
+    .hero-trend { font-size: var(--fs-trend); font-weight: 600; min-width: 1ch; }
+    .hero-update { margin-top: var(--space-3); font-size: var(--fs-small); color: var(--muted); }
     
     .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; }
     .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
-    .card h2 { font-size: 16px; color: var(--muted); margin-bottom: 20px; text-transform: uppercase; }
-    
-    @media (max-width: 1024px) {
-      .grid { grid-template-columns: 1fr; gap: 16px; }
-      .hero { padding: 24px; }
-      .card { padding: 18px; }
-    }
+    .card h2 { font-size: 16px; color: var(--muted); margin-bottom: var(--space-4); text-transform: uppercase; }
 
     .table-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
     .table-row:last-child { border: none; }
@@ -44,82 +71,136 @@
     .down { color: var(--green); }
     
     #chartWrapper { height: 300px; width: 100%; }
+    .error-message { color: var(--red); font-size: var(--fs-small); margin-top: var(--space-2); }
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+    :focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; gap: var(--space-3); }
+      .hero { padding: var(--space-5); }
+      .card { padding: 18px; }
+    }
+
+    @media (max-width: 768px) {
+      .container { padding: var(--space-5) var(--space-3); }
+      .header { margin-bottom: var(--space-5); }
+      .header h1 { font-size: 28px; }
+      .hero-value { font-size: 52px; }
+      .hero-content { gap: var(--space-3); }
+      #chartWrapper { height: 260px; }
+    }
+
+    @media (max-width: 480px) {
+      .container { padding: var(--space-5) var(--space-2); }
+      .hero { padding: var(--space-4); }
+      .hero-value { font-size: 40px; }
+      .hero-trend { font-size: 18px; }
+      .t-date, .hero-update { font-size: 12px; }
+      #chartWrapper { height: 220px; }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
-      <h1><div class="dot"></div> USD / BRL</h1>
-    </div>
+    <header class="header">
+      <h1><span class="dot" aria-hidden="true"></span> USD / BRL</h1>
+    </header>
 
-    <div class="hero">
-      <p class="hero-label">Cotação Comercial</p>
-      <div style="display: flex; align-items: baseline; gap: 20px;">
-        <span class="hero-value" id="currentVal">---</span>
-        <span id="trend" style="font-size: 20px; font-weight: 600;"></span>
-      </div>
-      <p style="margin-top: 15px; font-size: 13px; color: var(--muted);" id="lastUpdate"></p>
-    </div>
-
-    <div class="grid">
-      <div class="card">
-        <h2>Gráfico de Tendência</h2>
-        <div id="chartWrapper">
-          <canvas id="mainChart"></canvas>
+    <main>
+      <section class="hero" aria-labelledby="currentVal">
+        <p class="hero-label">Cotação Comercial</p>
+        <div class="hero-content">
+          <span class="hero-value" id="currentVal">---</span>
+          <span id="trend" class="hero-trend" aria-live="polite"></span>
         </div>
-      </div>
+        <p class="hero-update" id="lastUpdate"></p>
+      </section>
 
-      <div class="card">
-        <h2>Histórico Recente</h2>
-        <div id="historyTable"></div>
+      <div class="grid">
+        <section class="card" aria-labelledby="chartTitle">
+          <h2 id="chartTitle">Gráfico de Tendência</h2>
+          <div id="chartWrapper">
+            <canvas id="mainChart"></canvas>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="historyTitle">
+          <h2 id="historyTitle">Histórico Recente</h2>
+          <div id="historyTable"></div>
+        </section>
       </div>
-    </div>
+      <p id="errorState" class="error-message sr-only" role="status" aria-live="polite"></p>
+    </main>
   </div>
 
   <script>
     const API_URL = "/api/dolar";
+    const HISTORY_LIMIT = 7;
+    const CHART_LIMIT = 15;
+    let chartInstance = null;
 
-    async function fetchData() {
-      try {
-        const response = await fetch(API_URL);
-        const data = await response.json();
-        if (data.length > 0) render(data);
-      } catch (e) {
-        console.error("Erro ao carregar dados:", e);
-      }
+    function formatValue(value) {
+      return `R$ ${parseFloat(value).toFixed(3)}`;
     }
 
-    function render(data) {
-      const last = data[data.length - 1];
-      const prev = data.length > 1 ? data[data.length - 2] : last;
-      const isUp = parseFloat(last.valor) > parseFloat(prev.valor);
+    function formatDateTime(dateTime) {
+      return dateTime ? dateTime.split(' ')[0] : '--';
+    }
 
-      // Update Hero
-      document.getElementById('currentVal').innerText = `R$ ${parseFloat(last.valor).toFixed(3)}`;
+    function setError(message) {
+      const errorState = document.getElementById('errorState');
+      errorState.classList.remove('sr-only');
+      errorState.innerText = message;
+    }
+
+    function clearError() {
+      const errorState = document.getElementById('errorState');
+      errorState.classList.add('sr-only');
+      errorState.innerText = '';
+    }
+
+    function renderHero(last, prev) {
+      const isUp = parseFloat(last.valor) > parseFloat(prev.valor);
+      document.getElementById('currentVal').innerText = formatValue(last.valor);
       document.getElementById('lastUpdate').innerText = `Última sincronização: ${last.data_hora}`;
-      
       const trendEl = document.getElementById('trend');
       trendEl.innerText = isUp ? "▲" : "▼";
-      trendEl.className = isUp ? "up" : "down";
+      trendEl.className = `hero-trend ${isUp ? "up" : "down"}`;
+    }
 
-      // Update Table (Last 7)
+    function renderHistory(data) {
       const table = document.getElementById('historyTable');
-      table.innerHTML = data.slice(-7).reverse().map(item => `
+      table.innerHTML = data.slice(-HISTORY_LIMIT).reverse().map(item => `
         <div class="table-row">
-          <span class="t-date">${item.data_hora.split(' ')[0]}</span>
-          <span class="t-val">R$ ${parseFloat(item.valor).toFixed(3)}</span>
+          <span class="t-date">${formatDateTime(item.data_hora)}</span>
+          <span class="t-val">${formatValue(item.valor)}</span>
         </div>
       `).join('');
+    }
 
-      // Update Chart
+    function renderChart(data) {
       const ctx = document.getElementById('mainChart').getContext('2d');
-      new Chart(ctx, {
+      const lastPoints = data.slice(-CHART_LIMIT);
+      if (chartInstance) chartInstance.destroy();
+      chartInstance = new Chart(ctx, {
         type: 'line',
         data: {
-          labels: data.slice(-15).map(d => d.data_hora.split(' ')[0]),
+          labels: lastPoints.map(d => formatDateTime(d.data_hora)),
           datasets: [{
             label: 'Dólar',
-            data: data.slice(-15).map(d => parseFloat(d.valor)),
+            data: lastPoints.map(d => parseFloat(d.valor)),
             borderColor: '#4ade80',
             backgroundColor: 'rgba(74, 222, 128, 0.1)',
             fill: true,
@@ -136,6 +217,30 @@
           }
         }
       });
+    }
+
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        if (!Array.isArray(data) || data.length === 0) {
+          setError("Nenhum dado de cotação disponível no momento.");
+          return;
+        }
+        clearError();
+        render(data);
+      } catch (e) {
+        console.error("Erro ao carregar dados:", e);
+        setError("Não foi possível carregar a cotação agora.");
+      }
+    }
+
+    function render(data) {
+      const last = data[data.length - 1];
+      const prev = data.length > 1 ? data[data.length - 2] : last;
+      renderHero(last, prev);
+      renderHistory(data);
+      renderChart(data);
     }
 
     fetchData();
