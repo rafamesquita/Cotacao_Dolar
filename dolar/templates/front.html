@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard Dólar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    /* Estilos preservados e polidos */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0b0e14; --card: #11141d; --border: #1e2230;
+      --fg: #e0e4ed; --muted: #6b7280; --green: #4ade80;
+      --red: #f87171; --radius: 16px;
+    }
+    body { background: var(--bg); color: var(--fg); font-family: 'Space Grotesk', sans-serif; min-height: 100vh; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+    
+    .header { margin-bottom: 32px; }
+    .header h1 { font-size: 32px; letter-spacing: -1px; display: flex; align-items: center; gap: 12px; }
+    .header .dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 10px var(--green); }
+
+    .hero { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 40px; margin-bottom: 24px; position: relative; overflow: hidden; }
+    .hero-label { color: var(--muted); font-size: 14px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+    .hero-value { font-family: 'JetBrains Mono', monospace; font-size: 64px; font-weight: 700; line-height: 1; }
+    
+    .grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 24px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
+    .card h2 { font-size: 16px; color: var(--muted); margin-bottom: 20px; text-transform: uppercase; }
+    
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: 1fr; gap: 16px; }
+      .hero { padding: 24px; }
+      .card { padding: 18px; }
+    }
+
+    .table-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .table-row:last-child { border: none; }
+    .t-date { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
+    .t-val { font-weight: 600; }
+
+    .up { color: var(--red); }
+    .down { color: var(--green); }
+    
+    #chartWrapper { height: 300px; width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1><div class="dot"></div> USD / BRL</h1>
+    </div>
+
+    <div class="hero">
+      <p class="hero-label">Cotação Comercial</p>
+      <div style="display: flex; align-items: baseline; gap: 20px;">
+        <span class="hero-value" id="currentVal">---</span>
+        <span id="trend" style="font-size: 20px; font-weight: 600;"></span>
+      </div>
+      <p style="margin-top: 15px; font-size: 13px; color: var(--muted);" id="lastUpdate"></p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h2>Gráfico de Tendência</h2>
+        <div id="chartWrapper">
+          <canvas id="mainChart"></canvas>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Histórico Recente</h2>
+        <div id="historyTable"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "/api/dolar";
+
+    async function fetchData() {
+      try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        if (data.length > 0) render(data);
+      } catch (e) {
+        console.error("Erro ao carregar dados:", e);
+      }
+    }
+
+    function render(data) {
+      const last = data[data.length - 1];
+      const prev = data.length > 1 ? data[data.length - 2] : last;
+      const isUp = parseFloat(last.valor) > parseFloat(prev.valor);
+
+      // Update Hero
+      document.getElementById('currentVal').innerText = `R$ ${parseFloat(last.valor).toFixed(3)}`;
+      document.getElementById('lastUpdate').innerText = `Última sincronização: ${last.data_hora}`;
+      
+      const trendEl = document.getElementById('trend');
+      trendEl.innerText = isUp ? "▲" : "▼";
+      trendEl.className = isUp ? "up" : "down";
+
+      // Update Table (Last 7)
+      const table = document.getElementById('historyTable');
+      table.innerHTML = data.slice(-7).reverse().map(item => `
+        <div class="table-row">
+          <span class="t-date">${item.data_hora.split(' ')[0]}</span>
+          <span class="t-val">R$ ${parseFloat(item.valor).toFixed(3)}</span>
+        </div>
+      `).join('');
+
+      // Update Chart
+      const ctx = document.getElementById('mainChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.slice(-15).map(d => d.data_hora.split(' ')[0]),
+          datasets: [{
+            label: 'Dólar',
+            data: data.slice(-15).map(d => parseFloat(d.valor)),
+            borderColor: '#4ade80',
+            backgroundColor: 'rgba(74, 222, 128, 0.1)',
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: '#1e2230' }, ticks: { color: '#6b7280' } },
+            x: { grid: { display: false }, ticks: { color: '#6b7280' } }
+          }
+        }
+      });
+    }
+
+    fetchData();
+  </script>
+</body>
+</html>
